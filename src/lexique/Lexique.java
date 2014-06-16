@@ -161,19 +161,24 @@ public class Lexique {
     
      /*Extrait tous les adjectifs d'une Phrase*/
 
-    ArrayList<String> extraitAdj(Phrase comm) throws SQLException {
+    ArrayList<String> extraitAdjAdv(Phrase comm) throws SQLException {
         Statement lanceRequete;
         lanceRequete = connG.conn.createStatement();
         ResultSet requete;
         ArrayList<String> liste;
         liste = new ArrayList<>();
+        //System.out.println(comm);
+        comm = comm.lemmatise();
+        System.out.println(comm);
         for (String s : comm.mots) {
-            requete = lanceRequete.executeQuery("Select * from lexiqueLemme where mot = '"
-                + s + "'");
+            requete = lanceRequete.executeQuery("Select * from basenotee where lemme = '"
+                    + s + "'");
             if (requete.next()) {
-                    liste.add(s);
+                liste.add(s);
             }
+            requete.close();
         }
+        lanceRequete.close();
         return liste;
     }
 
@@ -185,34 +190,36 @@ public class Lexique {
         ResultSet requete;
         ArrayList<String> liste;
         liste = new ArrayList<>();
-        liste = extraitAdj(comm);
+        liste = extraitAdjAdv(comm);
         int note = 0;
         for (int i = 0; i < liste.size(); i++) {
-            requete = lanceRequete.executeQuery("Select opinion from lexiqueLemme where lemme = '" + liste.get(i) + "'");
+            requete = lanceRequete.executeQuery("Select opinion from basenotee where lemme = '" + liste.get(i) + "'");
             if (requete.next()) {
-                if (requete.getInt("opinion") == -1) {
-                    if (comm.detectNegation()) {
-                        note++;
-                    } else {
-                        note--;
-                    }
-                } else {
-                    if (requete.getInt("opinion") == 1) {
+                if (requete.getInt("opinion") != 0) {
+                    if (requete.getInt("opinion") == -1) {
                         if (comm.detectNegation()) {
-                            note--;
-                        } else {
                             note++;
+                        } else {
+                            note--;
+                        }
+                    } else {
+                        if (requete.getInt("opinion") == 1) {
+                            if (comm.detectNegation()) {
+                                note--;
+                            } else {
+                                note++;
+                            }
                         }
                     }
                 }
-
             }
+            System.out.println(liste.get(i) + note);
             requete.close();
         }
         Statement updateR;
         updateR = connG.conn.createStatement();
-        updateR.executeUpdate("update phrase set note = '" + note + "' where id_phrase = '"
-            + id_phrase + "'");
+        updateR.executeUpdate("update phrase_2 set note = '" + note + "' where id_phrase = '"
+                + id_phrase + "'");
         updateR.close();
         lanceRequete.close();
     }
@@ -256,14 +263,15 @@ public class Lexique {
     public static void main(String[] args) throws SQLException {
         Lexique l;
         l = new Lexique();
+        Phrase lower;
         Statement lanceRequete;
         lanceRequete = l.connG.conn.createStatement();
         ResultSet requete;
-        requete = lanceRequete.executeQuery("select * from phrase");
-        for (int i = 0; i < 50; i++) {
-            if(requete.next()){
-                l.notePhrase(requete.getString("phrase"),requete.getInt("id_phrase"));
-            }
+        requete = lanceRequete.executeQuery("select * from phrase_2");
+        while (requete.next()) {
+            lower = new Phrase(requete.getString("phrase"));
+            lower.phrase = lower.phrase.toLowerCase();
+            l.notePhrase(lower.phrase, requete.getInt("id_phrase"));
         }
 
         /*

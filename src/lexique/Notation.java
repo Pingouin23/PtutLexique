@@ -37,20 +37,56 @@ public class Notation {
         int note;
         Scanner s;
         s = new Scanner(System.in);
-        if (r.getInt("opinion") == 2){
-            System.out.print("Adjectif : " + r.getString("mot") + " ");
+        while (r.next()){
+            System.out.print("Adverbe : " + r.getString("mot") + " ");
             System.out.print("Donner un note : ");
             note = s.nextInt();
             if(note == 0 || note == 1){
-                requeteSet = lanceRequete1.executeQuery("update Lexique set opinion =" + note
-                        + "where mot ='" + r.getString("mot")+ "'");
+                requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
+                        + r.getInt("id_mot") 
+                        + "','" + r.getString("mot")
+                        + "','" + r.getString("lemme")
+                        + "','" + r.getString("cgram")
+                        + "','" + r.getInt("classe")
+                        + "','" + r.getString("genre")
+                        + "','" + r.getString("nombre")
+                        + "','" + r.getInt("freqlemfilm")
+                        + "','" + r.getInt("freqlemlivre")
+                        + "','" + r.getInt("freqfilm")
+                        + "','" + r.getInt("freqlivre")
+                        + "','" + note
+                        + "')");
                 requeteSet.close();
             }
             else{
-                if (note == 2) requeteSet = lanceRequete1.executeQuery("update Lexique set opinion = -1"
-                        +  "where mot ='" + r.getString("mot") + "'"); 
-                else requeteSet = lanceRequete1.executeQuery("update Lexique set opinion = 2"
-                        +  "where mot ='" + r.getString("mot")+ "'");
+                if (note == 2) requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
+                        + r.getInt("id_mot") 
+                        + "','" + r.getString("mot")
+                        + "','" + r.getString("lemme")
+                        + "','" + r.getString("cgram")
+                        + "','" + r.getInt("classe")
+                        + "','" + r.getString("genre")
+                        + "','" + r.getString("nombre")
+                        + "','" + r.getInt("freqlemfilm")
+                        + "','" + r.getInt("freqlemlivre")
+                        + "','" + r.getInt("freqfilm")
+                        + "','" + r.getInt("freqlivre")
+                        + "',' -1"
+                        + "')");
+                else requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
+                        + r.getInt("id_mot") 
+                        + "','" + r.getString("mot")
+                        + "','" + r.getString("lemme")
+                        + "','" + r.getString("cgram")
+                        + "','" + r.getInt("classe")
+                        + "','" + r.getString("genre")
+                        + "','" + r.getString("nombre")
+                        + "','" + r.getInt("freqlemfilm")
+                        + "','" + r.getInt("freqlemlivre")
+                        + "','" + r.getInt("freqfilm")
+                        + "','" + r.getInt("freqlivre")
+                        + "',' 2"
+                        + "')");
                 requeteSet.close();
             }
         } 
@@ -63,7 +99,8 @@ public class Notation {
         Statement lanceRequete1;
         lanceRequete1 = note.conn.createStatement();
         ResultSet requete1;
-        requete1 = lanceRequete1.executeQuery("select * from Lexique where CGRAM = 'ADJ'");
+        requete1 = lanceRequete1.executeQuery("select * from Lexique where CGRAM = 'ADV'"
+                + "and mot not in (Select mot from lexiqueLemme)");
         while(requete1.next()){
             note.donneNote(requete1);
         }

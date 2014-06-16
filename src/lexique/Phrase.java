@@ -28,8 +28,18 @@ public class Phrase {
 
     boolean detectNegation() {
         for (int i = 0; i < elements.length; i++) {
-            if (Pattern.matches("ne|pas|jamais|rien|aucun|aucune|n|impossible", elements[i])) { // expression regulière
+            if (Pattern.matches("ne|pas|jamais|rien|aucun|aucune|n|impossible|moins", elements[i])) { // expression regulière
+                System.out.println("pouet");   
                 return true;
+            }
+            else {
+                if (i < elements.length - 2) {
+                    if (Pattern.matches("loin", elements[i])
+                            && Pattern.matches("d", elements[i + 1])
+                            && Pattern.matches("être", elements[i + 2])) {
+                        return true;
+                    }
+                }
             }
         }
         return false;
@@ -63,11 +73,12 @@ public class Phrase {
                         test = mot;
                         finalp.mots.add(mot);
                     } else {
-                        lexique = lanceRequete.executeQuery("Select * from LEXIQUE where lower(MOT) = '" + mot
+                        lexique = lanceRequete.executeQuery("Select * from basemot where lower(MOT) = '" + mot
                                 + "' and (CGRAM = 'NOM' "
                                 + "or CGRAM = 'VER' "
                                 + "or CGRAM = 'ADV' or CGRAM = 'ADJ')"
-                                + "order by FREQLEMFILM desc");
+                                + "order by cgram asc,"
+                                + "FREQLEMFILM desc");
                         if (lexique.next()) {
                             //System.out.println("lemme " + lexique.getString("LEMME"));
                             finalp.mots.add(lexique.getString("LEMME"));
@@ -82,11 +93,12 @@ public class Phrase {
                         finalp.mots.add(mot);
                     } else {
                         test = "";
-                        lexique = lanceRequete.executeQuery("Select * from LEXIQUE where lower(MOT) = '" + mot
+                        lexique = lanceRequete.executeQuery("Select * from basemot where lower(MOT) = '" + mot
                                 + "' and (CGRAM = 'NOM' "
                                 + "or CGRAM = 'VER' "
                                 + "or CGRAM = 'ADV' or CGRAM = 'ADJ')"
-                                + "order by FREQLEMFILM desc");
+                                + "order by  cgram asc,"
+                                + "FREQLEMFILM desc");
                         if (lexique.next()) {
                             //System.out.println("lemme " + lexique.getString("LEMME"));
                             finalp.mots.add(lexique.getString("LEMME"));
@@ -106,7 +118,8 @@ public class Phrase {
 
     public static void main(String[] args) throws SQLException {
         Phrase s;
-        s = new Phrase("Le Advan A048 est super, jambon, patate");
+        s = new Phrase("Pas cher cela dit");
+        s.detectNegation();
         s = s.lemmatise();
         System.out.println(s);
     }
