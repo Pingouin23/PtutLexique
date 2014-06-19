@@ -1,3 +1,4 @@
+/*Permet de noter des mots du lexique*/
 package lexique;
 
 import java.sql.ResultSet;
@@ -18,16 +19,11 @@ public class Notation {
     java.sql.Connection conn;
 
     Notation() throws SQLException {
-        userid = "p1105653";
-        password = "154996";
-        URL = "jdbc:oracle:thin:@iuta.univ-lyon1.fr:1521:orcl";
+        userid = "admin"; //votre id
+        password = "admin"; //votre mdp
+        URL = "jdbc:oracle:thin:@iuta.univ-lyon1.fr:1521:orcl"; //votre serveur
         conn = java.sql.DriverManager.getConnection(URL, userid, password);
         java.sql.DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-        if (conn != null) {
-            System.out.println("Connexion établie");
-        } else {
-            System.out.println("Connexion échouée");
-        }
     }
     
     void donneNote(ResultSet r) throws SQLException{
@@ -40,8 +36,12 @@ public class Notation {
         while (r.next()){
             System.out.print("Adverbe : " + r.getString("mot") + " ");
             System.out.print("Donner un note : ");
+            //Lorsque la fonction est lancée, taper 0 pour noter l'opinion à 0
+            //taper 1 pour noter à 1
+            //taper 2 pour noter à -1
             note = s.nextInt();
             if(note == 0 || note == 1){
+                //mise à jour du lexique noté
                 requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
                         + r.getInt("id_mot") 
                         + "','" + r.getString("mot")
@@ -59,6 +59,7 @@ public class Notation {
                 requeteSet.close();
             }
             else{
+                //mise à jour du lexique noté
                 if (note == 2) requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
                         + r.getInt("id_mot") 
                         + "','" + r.getString("mot")
@@ -73,6 +74,7 @@ public class Notation {
                         + "','" + r.getInt("freqlivre")
                         + "',' -1"
                         + "')");
+                //mise à jour du lexique noté
                 else requeteSet = lanceRequete1.executeQuery("insert into lexiqueLemme values('"
                         + r.getInt("id_mot") 
                         + "','" + r.getString("mot")
@@ -90,7 +92,6 @@ public class Notation {
                 requeteSet.close();
             }
         } 
-        System.out.print("\n");
     }
     
     public static void main(String[] args) throws SQLException {
@@ -99,6 +100,7 @@ public class Notation {
         Statement lanceRequete1;
         lanceRequete1 = note.conn.createStatement();
         ResultSet requete1;
+        //choix des mots à ajouter au lexique en partant du lexique complet non noté
         requete1 = lanceRequete1.executeQuery("select * from Lexique where CGRAM = 'ADV'"
                 + "and mot not in (Select mot from lexiqueLemme)");
         while(requete1.next()){
@@ -106,7 +108,5 @@ public class Notation {
         }
         lanceRequete1.close();
         requete1.close();
-        
-        //System.out.println(requete1.getInt("opinion"));
     }
 }

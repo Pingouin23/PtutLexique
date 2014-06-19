@@ -1,3 +1,4 @@
+/*Classe Phrase permettant d'ensuite diviser en mots*/
 package lexique;
 
 import java.sql.ResultSet;
@@ -16,8 +17,8 @@ public class Phrase {
 
     Phrase(String s) {
         phrase = s;
-        elements = phrase.split("[ .\",\'=!/():;_?]");
-        mots = new ArrayList((Arrays.asList(elements)));
+        elements = phrase.split("[ .\",\'=!/():;_?]"); //split ponctuation
+        mots = new ArrayList((Arrays.asList(elements))); //création de la liste de mots
         phrase = join(mots);
     }
 
@@ -28,11 +29,13 @@ public class Phrase {
 
     boolean detectNegation() {
         for (int i = 0; i < elements.length; i++) {
-            if (Pattern.matches("ne|pas|jamais|rien|aucun|aucune|n|impossible|moins", elements[i])) { // expression regulière
-                System.out.println("pouet");   
+            //termes permettant de valider une négation
+            if (Pattern.matches("ne|pas|jamais|rien|aucun|aucune|n|impossible|moins|peu", elements[i])) { 
+                // expression regulière   
                 return true;
             }
             else {
+                //particularité pour "loin d'être"
                 if (i < elements.length - 2) {
                     if (Pattern.matches("loin", elements[i])
                             && Pattern.matches("d", elements[i + 1])
@@ -68,11 +71,13 @@ public class Phrase {
             mot = mot.toLowerCase();
             try {
                 if (test.equals("")) {
+                    //ajout des noms de produits
                     liste_pneus = lanceRequete.executeQuery("Select * from PNEUS where lower(DESIGNATION) = '" + mot + "'");
                     if (liste_pneus.next()) {
                         test = mot;
                         finalp.mots.add(mot);
                     } else {
+                        //ajout des mots du lexique correspondant aux classes grammaticales voulues
                         lexique = lanceRequete.executeQuery("Select * from basemot where lower(MOT) = '" + mot
                                 + "' and (CGRAM = 'NOM' "
                                 + "or CGRAM = 'VER' "
@@ -80,12 +85,15 @@ public class Phrase {
                                 + "order by cgram asc,"
                                 + "FREQLEMFILM desc");
                         if (lexique.next()) {
-                            //System.out.println("lemme " + lexique.getString("LEMME"));
                             finalp.mots.add(lexique.getString("LEMME"));
                         }
                         lexique.close();
                     }
                 } else {
+                    /*Dans ce else se trouve un début de travail sur un bigramme
+                    Cela s'effectue sur la désignation d'un produit lorsqu'il contient plusieurs termes différents
+                    ex : "Michelin X85 hiver"*/
+                    //ajout des noms de produits
                     liste_pneus = lanceRequete.executeQuery("Select * from PNEUS where lower(DESIGNATION)"
                             + " = '" + test +" "+ mot + "'");
                     if (liste_pneus.next()) {
@@ -93,6 +101,7 @@ public class Phrase {
                         finalp.mots.add(mot);
                     } else {
                         test = "";
+                        //ajout des mots du lexique correspondant aux classes grammaticales voulues
                         lexique = lanceRequete.executeQuery("Select * from basemot where lower(MOT) = '" + mot
                                 + "' and (CGRAM = 'NOM' "
                                 + "or CGRAM = 'VER' "
@@ -100,7 +109,6 @@ public class Phrase {
                                 + "order by  cgram asc,"
                                 + "FREQLEMFILM desc");
                         if (lexique.next()) {
-                            //System.out.println("lemme " + lexique.getString("LEMME"));
                             finalp.mots.add(lexique.getString("LEMME"));
                         }
                         lexique.close();
@@ -118,6 +126,7 @@ public class Phrase {
 
     public static void main(String[] args) throws SQLException {
         Phrase s;
+        //test
         s = new Phrase("Pas cher cela dit");
         s.detectNegation();
         s = s.lemmatise();
